@@ -7,714 +7,404 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Orbitron:wght@400;600;800;900&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ── CSS VARIABLES ── */
-  :root {
-    --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
-  }
+:root { --transition: 0.35s cubic-bezier(0.4,0,0.2,1); }
 
-  [data-theme="dark"] {
-    --bg:        #050a0f;
-    --bg2:       #080e16;
-    --panel:     rgba(8,18,32,0.82);
-    --border:    rgba(0,200,255,0.15);
-    --border-h:  rgba(0,200,255,0.45);
-    --text:      #c8ddef;
-    --muted:     #4a6a80;
-    --accent:    #00c8ff;
-    --accent2:   #00ff9d;
-    --accent3:   #ff4d8f;
-    --glow:      rgba(0,200,255,0.18);
-    --glow2:     rgba(0,255,157,0.14);
-    --header:    #ffffff;
-    --tag-bg:    rgba(0,200,255,0.10);
-    --shadow:    0 8px 40px rgba(0,0,0,0.6);
-    --grid-col:  rgba(0,200,255,0.04);
-  }
+[data-theme="dark"] {
+  --bg:#050a0f; --bg2:#080e16;
+  --panel:rgba(8,18,32,0.88);
+  --border:rgba(0,200,255,0.15); --border-h:rgba(0,200,255,0.5);
+  --text:#c8ddef; --muted:#4a6a80;
+  --accent:#00c8ff; --accent2:#00ff9d; --accent3:#ff4d8f;
+  --glow:rgba(0,200,255,0.20); --glow2:rgba(0,255,157,0.16);
+  --header:#ffffff; --tag-bg:rgba(0,200,255,0.10);
+  --shadow:0 8px 40px rgba(0,0,0,0.65);
+  --grid-col:rgba(0,200,255,0.035);
+  --particle:#00c8ff;
+}
+[data-theme="light"] {
+  --bg:#eef2f7; --bg2:#e0e8f2;
+  --panel:rgba(255,255,255,0.90);
+  --border:rgba(30,100,180,0.14); --border-h:rgba(30,100,180,0.42);
+  --text:#1e3a5f; --muted:#7a90a8;
+  --accent:#0070d8; --accent2:#00a060; --accent3:#d0005a;
+  --glow:rgba(0,112,216,0.13); --glow2:rgba(0,160,96,0.10);
+  --header:#0a1f3c; --tag-bg:rgba(0,112,216,0.09);
+  --shadow:0 8px 40px rgba(0,0,0,0.10);
+  --grid-col:rgba(0,80,180,0.04);
+  --particle:#0070d8;
+}
 
-  [data-theme="light"] {
-    --bg:        #f0f4f8;
-    --bg2:       #e4eaf2;
-    --panel:     rgba(255,255,255,0.88);
-    --border:    rgba(30,100,180,0.15);
-    --border-h:  rgba(30,100,180,0.4);
-    --text:      #1e3a5f;
-    --muted:     #7a90a8;
-    --accent:    #0070d8;
-    --accent2:   #00a060;
-    --accent3:   #d0005a;
-    --glow:      rgba(0,112,216,0.12);
-    --glow2:     rgba(0,160,96,0.10);
-    --header:    #0a1f3c;
-    --tag-bg:    rgba(0,112,216,0.09);
-    --shadow:    0 8px 40px rgba(0,0,0,0.12);
-    --grid-col:  rgba(0,80,180,0.04);
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
 
-  /* ── RESET & BASE ── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+body{
+  font-family:'Syne',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden;
+  transition:background var(--transition),color var(--transition);
+}
 
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    transition: background var(--transition), color var(--transition);
-  }
+/* PARTICLE CANVAS */
+#particleCanvas{
+  position:fixed;inset:0;z-index:0;
+  pointer-events:none;
+  opacity:0.55;
+  transition:opacity var(--transition);
+}
+[data-theme="light"] #particleCanvas{opacity:0.25;}
 
-  /* ── GRID BG ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image:
-      linear-gradient(var(--grid-col) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-col) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-    transition: var(--transition);
-  }
+/* GRID BG */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--grid-col) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-col) 1px,transparent 1px);
+  background-size:44px 44px;
+  pointer-events:none;z-index:0;transition:var(--transition);
+}
+[data-theme="dark"] body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+  pointer-events:none;z-index:0;
+}
 
-  /* ── SCANLINE OVERLAY (dark only) ── */
-  [data-theme="dark"] body::after {
-    content: '';
-    position: fixed; inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.08) 2px,
-      rgba(0,0,0,0.08) 4px
-    );
-    pointer-events: none;
-    z-index: 0;
-  }
+/* WRAPPER */
+.cc-wrapper{
+  position:relative;z-index:1;
+  max-width:1420px;margin:0 auto;
+  padding:28px 20px 48px;
+  display:flex;flex-direction:column;gap:20px;
+}
 
-  /* ── WRAPPER ── */
-  .cc-wrapper {
-    position: relative; z-index: 1;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 32px 20px 48px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.topbar-brand{display:flex;align-items:center;gap:12px;}
+.topbar-logo{
+  width:40px;height:40px;border:2px solid var(--accent);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:var(--accent);
+  box-shadow:0 0 14px var(--glow);animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 14px var(--glow);}50%{box-shadow:0 0 28px var(--glow),0 0 8px var(--accent);}}
+.topbar-name{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:var(--header);letter-spacing:0.05em;}
+.topbar-name span{color:var(--accent);}
+.topbar-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.sys-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
 
-  /* ── TOP BAR ── */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
+/* SOCIAL LINKS TOP */
+.social-links{display:flex;gap:6px;}
+.soc-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+  border:1px solid var(--border);background:var(--panel);
+  color:var(--muted);text-decoration:none;
+  transition:all var(--transition);letter-spacing:0.04em;
+  backdrop-filter:blur(8px);
+}
+.soc-btn:hover{color:var(--accent);border-color:var(--accent);box-shadow:0 0 10px var(--glow);}
+.soc-btn svg{width:13px;height:13px;fill:currentColor;flex-shrink:0;}
 
-  .topbar-brand {
-    display: flex; align-items: center; gap: 12px;
-  }
+/* THEME TOGGLE */
+.theme-toggle{
+  background:var(--panel);border:1px solid var(--border);border-radius:20px;
+  padding:4px 6px;display:flex;gap:2px;cursor:pointer;
+  transition:border-color var(--transition);backdrop-filter:blur(8px);
+}
+.theme-toggle:hover{border-color:var(--accent);}
+.t-btn{
+  padding:4px 10px;border-radius:14px;font-size:11px;font-weight:600;
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;
+  border:none;background:none;color:var(--muted);cursor:pointer;transition:all var(--transition);
+}
+.t-btn.active{background:var(--accent);color:#000;box-shadow:0 0 10px var(--glow);}
 
-  .topbar-logo {
-    width: 38px; height: 38px;
-    border: 2px solid var(--accent);
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Orbitron', monospace;
-    font-size: 14px; font-weight: 900;
-    color: var(--accent);
-    box-shadow: 0 0 12px var(--glow);
-    position: relative;
-    animation: logoPulse 3s ease-in-out infinite;
-  }
+/* STATUS BAR */
+.statusbar{
+  display:flex;align-items:center;gap:10px;padding:8px 16px;
+  background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  backdrop-filter:blur(14px);flex-wrap:wrap;
+}
+.status-tag{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.status-tag .dot{width:6px;height:6px;border-radius:50%;}
+.dot-green{background:var(--accent2);box-shadow:0 0 6px var(--accent2);animation:blink 2.5s ease-in-out infinite;}
+.dot-blue{background:var(--accent);box-shadow:0 0 6px var(--accent);animation:blink 2s ease-in-out infinite 0.5s;}
+.dot-red{background:var(--accent3);box-shadow:0 0 6px var(--accent3);animation:blink 3s ease-in-out infinite 1s;}
+.status-tag span:last-child{color:var(--text);}
+.status-sep{width:1px;height:16px;background:var(--border);}
+.sys-version{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
 
-  @keyframes logoPulse {
-    0%,100% { box-shadow: 0 0 12px var(--glow); }
-    50%      { box-shadow: 0 0 24px var(--glow), 0 0 6px var(--accent); }
-  }
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:265px 1fr 325px;gap:18px;align-items:start;}
 
-  .topbar-name {
-    font-family: 'Orbitron', monospace;
-    font-size: 15px; font-weight: 700;
-    color: var(--header);
-    letter-spacing: 0.05em;
-  }
-  .topbar-name span { color: var(--accent); }
+/* PANEL BASE */
+.panel{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  backdrop-filter:blur(18px);box-shadow:var(--shadow);overflow:hidden;
+  transition:border-color var(--transition),box-shadow var(--transition);
+}
+.panel:hover{border-color:var(--border-h);}
+.panel-header{
+  padding:13px 18px 11px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,rgba(0,200,255,0.05),transparent);
+}
+.panel-icon{width:28px;height:28px;border-radius:6px;background:var(--tag-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.panel-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;color:var(--accent);text-transform:uppercase;}
+.panel-body{padding:15px 17px;}
 
-  .topbar-right { display: flex; align-items: center; gap: 14px; }
+/* ── LEFT: MODULES ── */
+.module-list{display:flex;flex-direction:column;gap:11px;}
+.module-card{
+  border:1px solid var(--border);border-radius:8px;padding:13px;
+  transition:all var(--transition);position:relative;overflow:hidden;
+}
+.module-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity var(--transition);border-radius:8px;}
+.module-card.active::before{opacity:1;}
+.module-card.mod-ai.active::before{background:linear-gradient(135deg,rgba(0,200,255,0.09),transparent);}
+.module-card.mod-sec.active::before{background:linear-gradient(135deg,rgba(255,77,143,0.09),transparent);}
+.module-card.mod-web.active::before{background:linear-gradient(135deg,rgba(0,255,157,0.09),transparent);}
+.module-card.active{border-color:var(--border-h);}
+.module-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.module-name{font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px;}
+.module-emoji{font-size:15px;}
+.toggle-wrap{display:flex;align-items:center;gap:5px;}
+.toggle-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;}
+.toggle-label.on{color:var(--accent2);}
+.toggle-label.off{color:var(--muted);}
+.toggle{position:relative;width:38px;height:20px;cursor:pointer;}
+.toggle input{display:none;}
+.toggle-track{position:absolute;inset:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;transition:all var(--transition);}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:all var(--transition);}
+.toggle input:checked~.toggle-track{background:rgba(0,255,157,0.15);border-color:var(--accent2);}
+.toggle input:checked~.toggle-thumb{left:20px;background:var(--accent2);box-shadow:0 0 8px var(--accent2);}
+.mod-sec .toggle input:checked~.toggle-track{background:rgba(255,77,143,0.12);border-color:var(--accent3);}
+.mod-sec .toggle input:checked~.toggle-thumb{background:var(--accent3);box-shadow:0 0 8px var(--accent3);}
+.module-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.module-status{
+  margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);
+  padding:5px 8px;background:var(--bg2);border-radius:4px;border-left:2px solid var(--border);
+  transition:all var(--transition);min-height:26px;line-height:1.4;
+}
+.module-status.active-ai{color:var(--accent);border-color:var(--accent);}
+.module-status.active-sec{color:var(--accent3);border-color:var(--accent3);}
+.module-status.active-web{color:var(--accent2);border-color:var(--accent2);}
 
-  .sys-time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; color: var(--muted);
-  }
+/* CONTACT MINI PANEL in left */
+.contact-mini{margin-top:6px;padding-top:13px;border-top:1px solid var(--border);}
+.contact-mini-title{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.contact-link{
+  display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;
+  border:1px solid var(--border);background:rgba(0,0,0,0.1);
+  text-decoration:none;color:var(--muted);font-family:'JetBrains Mono',monospace;
+  font-size:10px;transition:all var(--transition);margin-bottom:5px;
+}
+.contact-link:hover{color:var(--accent);border-color:var(--accent);background:var(--tag-bg);transform:translateX(2px);}
+.contact-link svg{width:13px;height:13px;fill:currentColor;flex-shrink:0;}
+.contact-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-  .conn-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--accent2);
-    box-shadow: 0 0 8px var(--accent2);
-    animation: blink 2s ease-in-out infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* ── CENTER PANEL ── */
+.center-panel{display:flex;flex-direction:column;gap:18px;}
 
-  /* ── THEME TOGGLE ── */
-  .theme-toggle {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 4px 6px;
-    display: flex; gap: 2px;
-    cursor: pointer;
-    transition: border-color var(--transition);
-  }
-  .theme-toggle:hover { border-color: var(--accent); }
+.sys-core{
+  position:relative;border-radius:12px;overflow:hidden;
+  padding:36px 30px 32px;text-align:center;
+  background:var(--panel);border:1px solid var(--border);
+  backdrop-filter:blur(18px);box-shadow:var(--shadow);
+}
 
-  .t-btn {
-    padding: 4px 10px; border-radius: 14px;
-    font-size: 11px; font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.05em;
-    border: none; background: none;
-    color: var(--muted); cursor: pointer;
-    transition: all var(--transition);
-  }
-  .t-btn.active {
-    background: var(--accent);
-    color: #000;
-    box-shadow: 0 0 10px var(--glow);
-  }
+/* animated rings */
+.core-ring-wrap{position:relative;width:130px;height:130px;margin:0 auto 24px;}
+.core-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;}
+.ring1{border-color:var(--accent);border-right-color:transparent;border-bottom-color:transparent;animation:spin 3s linear infinite;}
+.ring2{inset:11px;border-color:var(--accent2);border-left-color:transparent;border-top-color:transparent;animation:spin 4.5s linear infinite reverse;}
+.ring3{inset:22px;border-color:var(--accent3);border-right-color:transparent;animation:spin 6s linear infinite;opacity:0.7;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.core-inner{
+  position:absolute;inset:34px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,200,255,0.13) 0%,transparent 70%);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;
+}
+.core-inner span:first-child{font-family:'Orbitron',monospace;font-size:10px;font-weight:800;color:var(--accent);letter-spacing:0.1em;}
+.core-inner span:last-child{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent2);}
 
-  /* ── STATUS BAR ── */
-  .statusbar {
-    display: flex; align-items: center; gap: 12px;
-    padding: 8px 16px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    backdrop-filter: blur(12px);
-    flex-wrap: wrap;
-  }
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;
+  color:var(--accent);text-transform:uppercase;margin-bottom:9px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';display:block;height:1px;width:28px;background:linear-gradient(to right,transparent,var(--accent));}
+.hero-eyebrow::after{background:linear-gradient(to left,transparent,var(--accent));}
 
-  .status-tag {
-    display: flex; align-items: center; gap: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; color: var(--muted);
-  }
-  .status-tag .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-  }
-  .dot-green { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); animation: blink 2.5s ease-in-out infinite; }
-  .dot-blue  { background: var(--accent);  box-shadow: 0 0 6px var(--accent); animation: blink 2s ease-in-out infinite 0.5s; }
-  .dot-red   { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); animation: blink 3s ease-in-out infinite 1s; }
+.hero-name{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(26px,3.5vw,44px);font-weight:900;
+  color:var(--header);letter-spacing:0.04em;line-height:1.1;margin-bottom:13px;
+  cursor:default;
+}
+.hero-name span{color:var(--accent);}
+.hero-name:hover{animation:glitch 0.3s ease-in-out;}
+@keyframes glitch{
+  0%{text-shadow:none;}20%{text-shadow:-2px 0 var(--accent3),2px 0 var(--accent);}
+  40%{text-shadow:2px 0 var(--accent3),-2px 0 var(--accent);}
+  60%{text-shadow:-1px 0 var(--accent3);}80%{text-shadow:1px 0 var(--accent);}
+  100%{text-shadow:none;}
+}
 
-  .status-tag span:last-child { color: var(--text); }
+.hero-roles{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
+.role-tag{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+  padding:4px 12px;border-radius:20px;border:1px solid var(--border);
+  background:var(--tag-bg);color:var(--accent);letter-spacing:0.05em;transition:all var(--transition);
+}
+.role-tag:nth-child(2){color:var(--accent2);border-color:rgba(0,255,157,0.25);background:rgba(0,255,157,0.07);}
+.role-tag:nth-child(3){color:var(--accent3);border-color:rgba(255,77,143,0.25);background:rgba(255,77,143,0.07);}
 
-  .status-sep { width: 1px; height: 16px; background: var(--border); }
+.core-status-line{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+  padding:9px 16px;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg2);margin-bottom:18px;text-align:left;
+  min-height:36px;transition:all var(--transition);line-height:1.5;
+}
 
-  .sys-version {
-    margin-left: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--muted);
-  }
+/* TECH / DOMAIN CHIPS */
+.chip-section{margin-bottom:12px;}
+.chip-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-bottom:7px;}
+.chip-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
+.tech-chip{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+  padding:3px 9px;border-radius:4px;background:var(--tag-bg);
+  border:1px solid var(--border);color:var(--text);letter-spacing:0.04em;
+  transition:all var(--transition);cursor:default;
+}
+.tech-chip:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 0 8px var(--glow);}
 
-  /* ── MAIN GRID ── */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 260px 1fr 320px;
-    gap: 20px;
-    align-items: start;
-  }
+/* PROJECTS */
+.projects-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.proj-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:14px;backdrop-filter:blur(12px);box-shadow:var(--shadow);
+  transition:all var(--transition);text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;
+  cursor:pointer;
+}
+.proj-card::after{
+  content:'↗';position:absolute;top:10px;right:12px;
+  font-size:14px;color:var(--muted);transition:all var(--transition);
+  opacity:0;transform:translate(-4px,4px);
+}
+.proj-card:hover::after{opacity:1;transform:translate(0,0);color:var(--accent);}
+.proj-card:hover{transform:translateY(-3px);box-shadow:var(--shadow),0 0 22px var(--glow);}
+.proj-card:nth-child(2):hover{border-color:var(--accent2);box-shadow:var(--shadow),0 0 22px var(--glow2);}
+.proj-card:nth-child(3):hover{border-color:var(--accent3);box-shadow:var(--shadow),0 0 22px rgba(255,77,143,0.18);}
+.proj-card:nth-child(1){border-color:rgba(0,200,255,0.2);}
+.proj-card:nth-child(2){border-color:rgba(0,255,157,0.2);}
+.proj-card:nth-child(3){border-color:rgba(255,77,143,0.2);}
+.proj-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:0.06em;}
+.proj-card:nth-child(1) .proj-name{color:var(--accent);}
+.proj-card:nth-child(2) .proj-name{color:var(--accent2);}
+.proj-card:nth-child(3) .proj-name{color:var(--accent3);}
+.proj-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.proj-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;}
+.proj-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);}
+.proj-link-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:0.04em;}
 
-  /* ── PANEL BASE ── */
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    backdrop-filter: blur(16px);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    transition: border-color var(--transition), box-shadow var(--transition);
-  }
-  .panel:hover { border-color: var(--border-h); }
+/* ── RIGHT: TERMINAL ── */
+.terminal-wrap{display:flex;flex-direction:column;gap:18px;}
+.terminal-panel{display:flex;flex-direction:column;}
+.terminal-body{
+  background:#020608;padding:13px 15px;
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;
+}
+[data-theme="light"] .terminal-body{background:#f4f8fc;border-top:1px solid var(--border);}
+.terminal-output{
+  min-height:200px;max-height:250px;overflow-y:auto;
+  color:#7ec8d8;line-height:1.7;margin-bottom:9px;padding-right:4px;
+}
+[data-theme="light"] .terminal-output{color:#1e4a7a;}
+.terminal-output::-webkit-scrollbar{width:3px;}
+.terminal-output::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.t-line{margin-bottom:1px;}
+.t-prompt{color:var(--accent2);}
+.t-cmd{color:var(--accent);}
+.t-resp{color:var(--muted);}
+.t-ok{color:var(--accent2);}
+.t-err{color:var(--accent3);}
+.t-info{color:#e0a040;}
+.t-link{color:var(--accent);text-decoration:underline;cursor:pointer;}
+.t-link:hover{color:var(--accent2);}
+.terminal-input-row{display:flex;align-items:center;gap:6px;border-top:1px solid rgba(0,200,255,0.10);padding-top:8px;}
+.t-caret{color:var(--accent2);flex-shrink:0;font-size:11px;}
+.terminal-input{flex:1;background:none;border:none;outline:none;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);caret-color:var(--accent2);}
+.cursor-blink{display:inline-block;width:7px;height:13px;background:var(--accent2);animation:blink 1s step-end infinite;vertical-align:middle;margin-left:2px;border-radius:1px;}
 
-  .panel-header {
-    padding: 14px 18px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 8px;
-    background: linear-gradient(135deg, rgba(0,200,255,0.04), transparent);
-  }
-  .panel-icon {
-    width: 28px; height: 28px; border-radius: 6px;
-    background: var(--tag-bg);
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-  }
-  .panel-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 10px; font-weight: 600;
-    letter-spacing: 0.12em;
-    color: var(--accent);
-    text-transform: uppercase;
-  }
-  .panel-body { padding: 16px 18px; }
+/* HINT ROW */
+.hint-row{display:flex;gap:5px;flex-wrap:wrap;}
+.hint-chip{
+  font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;
+  border-radius:4px;background:var(--tag-bg);border:1px solid var(--border);
+  color:var(--muted);cursor:pointer;transition:all var(--transition);letter-spacing:0.04em;
+}
+.hint-chip:hover{color:var(--accent);border-color:var(--accent);}
 
-  /* ── LEFT PANEL: MODULES ── */
-  .module-list { display: flex; flex-direction: column; gap: 12px; }
+/* LOG PANEL */
+.log-body{padding:13px 16px;}
+.log-list{display:flex;flex-direction:column;gap:4px;max-height:145px;overflow-y:auto;}
+.log-list::-webkit-scrollbar{width:3px;}
+.log-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.log-entry{font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;display:flex;gap:8px;align-items:flex-start;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1}}
+.log-ts{color:var(--muted);flex-shrink:0;}
+.log-msg{color:var(--text);}
+.log-msg.ok{color:var(--accent2);}
+.log-msg.err{color:var(--accent3);}
+.log-msg.info{color:var(--accent);}
 
-  .module-card {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    transition: all var(--transition);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .module-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    opacity: 0;
-    transition: opacity var(--transition);
-    border-radius: 8px;
-  }
-  .module-card.active::before { opacity: 1; }
-  .module-card.mod-ai.active::before    { background: linear-gradient(135deg, rgba(0,200,255,0.08), transparent); }
-  .module-card.mod-sec.active::before   { background: linear-gradient(135deg, rgba(255,77,143,0.08), transparent); }
-  .module-card.mod-web.active::before   { background: linear-gradient(135deg, rgba(0,255,157,0.08), transparent); }
-  .module-card.active { border-color: var(--border-h); }
+/* CONTACT CARD (bottom of right col) */
+.contact-card{padding:14px 17px;display:flex;flex-direction:column;gap:8px;}
+.contact-card-title{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:2px;}
+.contact-row{display:flex;gap:7px;flex-wrap:wrap;}
+.contact-pill{
+  display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:6px;
+  border:1px solid var(--border);background:var(--tag-bg);
+  text-decoration:none;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  transition:all var(--transition);
+}
+.contact-pill:hover{color:var(--accent);border-color:var(--accent);box-shadow:0 0 10px var(--glow);}
+.contact-pill svg{width:12px;height:12px;fill:currentColor;flex-shrink:0;}
 
-  .module-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .module-name {
-    font-size: 13px; font-weight: 600;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .module-emoji { font-size: 16px; }
+/* FOOTER */
+.footbar{
+  display:flex;align-items:center;gap:14px;padding:9px 16px;
+  background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  backdrop-filter:blur(14px);flex-wrap:wrap;
+}
+.foot-item{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+.foot-item .fi-label{color:var(--text);}
+.foot-sep{flex:1;}
+.uptime-bar{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
 
-  /* TOGGLE SWITCH */
-  .toggle-wrap { display: flex; align-items: center; gap: 6px; }
-  .toggle-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; font-weight: 600;
-    letter-spacing: 0.1em;
-  }
-  .toggle-label.on  { color: var(--accent2); }
-  .toggle-label.off { color: var(--muted); }
-
-  .toggle {
-    position: relative;
-    width: 38px; height: 20px;
-    cursor: pointer;
-  }
-  .toggle input { display: none; }
-  .toggle-track {
-    position: absolute; inset: 0;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    transition: all var(--transition);
-  }
-  .toggle-thumb {
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--muted);
-    transition: all var(--transition);
-  }
-  .toggle input:checked ~ .toggle-track {
-    background: rgba(0,255,157,0.15);
-    border-color: var(--accent2);
-  }
-  .toggle input:checked ~ .toggle-thumb {
-    left: 20px;
-    background: var(--accent2);
-    box-shadow: 0 0 8px var(--accent2);
-  }
-  .mod-sec .toggle input:checked ~ .toggle-track { background: rgba(255,77,143,0.12); border-color: var(--accent3); }
-  .mod-sec .toggle input:checked ~ .toggle-thumb { background: var(--accent3); box-shadow: 0 0 8px var(--accent3); }
-
-  .module-desc {
-    font-size: 11px; color: var(--muted); line-height: 1.5;
-  }
-  .module-status {
-    margin-top: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--muted);
-    padding: 5px 8px;
-    background: var(--bg2);
-    border-radius: 4px;
-    border-left: 2px solid var(--border);
-    transition: all var(--transition);
-    min-height: 26px;
-    line-height: 1.4;
-  }
-  .module-status.active-ai  { color: var(--accent);  border-color: var(--accent); }
-  .module-status.active-sec { color: var(--accent3); border-color: var(--accent3); }
-  .module-status.active-web { color: var(--accent2); border-color: var(--accent2); }
-
-  /* ── CENTER PANEL: SYSTEM CORE ── */
-  .center-panel {
-    display: flex; flex-direction: column; gap: 20px;
-  }
-
-  /* HERO BLOCK */
-  .sys-core {
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    padding: 40px 32px 36px;
-    text-align: center;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(16px);
-    box-shadow: var(--shadow);
-  }
-
-  /* Animated ring */
-  .core-ring-wrap {
-    position: relative;
-    width: 140px; height: 140px;
-    margin: 0 auto 28px;
-  }
-
-  .core-ring {
-    position: absolute; inset: 0;
-    border-radius: 50%;
-    border: 2px solid transparent;
-  }
-  .ring1 {
-    border-color: var(--accent);
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-    animation: spin 3s linear infinite;
-    box-shadow: inset 0 0 20px rgba(0,200,255,0.08);
-  }
-  .ring2 {
-    inset: 12px;
-    border-color: var(--accent2);
-    border-left-color: transparent;
-    border-top-color: transparent;
-    animation: spin 4.5s linear infinite reverse;
-  }
-  .ring3 {
-    inset: 24px;
-    border-color: var(--accent3);
-    border-right-color: transparent;
-    animation: spin 6s linear infinite;
-    opacity: 0.7;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .core-inner {
-    position: absolute;
-    inset: 36px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(0,200,255,0.12) 0%, transparent 70%);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .core-inner span:first-child {
-    font-family: 'Orbitron', monospace;
-    font-size: 11px; font-weight: 800;
-    color: var(--accent);
-    letter-spacing: 0.1em;
-  }
-  .core-inner span:last-child {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; color: var(--accent2);
-  }
-
-  /* Hero text */
-  .hero-eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; letter-spacing: 0.2em;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 10px;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-  .hero-eyebrow::before, .hero-eyebrow::after {
-    content: ''; display: block;
-    height: 1px; width: 30px;
-    background: linear-gradient(to right, transparent, var(--accent));
-  }
-  .hero-eyebrow::after { background: linear-gradient(to left, transparent, var(--accent)); }
-
-  .hero-name {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(28px, 4vw, 46px);
-    font-weight: 900;
-    color: var(--header);
-    letter-spacing: 0.04em;
-    line-height: 1.1;
-    margin-bottom: 14px;
-  }
-  .hero-name span { color: var(--accent); }
-
-  .hero-roles {
-    display: flex; align-items: center; justify-content: center;
-    flex-wrap: wrap; gap: 8px;
-    margin-bottom: 20px;
-  }
-  .role-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; font-weight: 600;
-    padding: 4px 12px; border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--tag-bg);
-    color: var(--accent);
-    letter-spacing: 0.05em;
-    transition: all var(--transition);
-  }
-  .role-tag:nth-child(2) { color: var(--accent2); border-color: rgba(0,255,157,0.25); background: rgba(0,255,157,0.07); }
-  .role-tag:nth-child(3) { color: var(--accent3); border-color: rgba(255,77,143,0.25); background: rgba(255,77,143,0.07); }
-
-  .core-status-line {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; color: var(--muted);
-    padding: 10px 20px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--bg2);
-    margin-bottom: 20px;
-    text-align: left;
-    min-height: 38px;
-    transition: all var(--transition);
-    line-height: 1.5;
-  }
-
-  /* TECH STACK */
-  .tech-row {
-    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
-  }
-  .tech-chip {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 4px;
-    background: var(--tag-bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    letter-spacing: 0.04em;
-    transition: all var(--transition);
-  }
-  .tech-chip:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    box-shadow: 0 0 8px var(--glow);
-  }
-
-  /* PROJECTS ROW */
-  .projects-row {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-  }
-  .proj-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    backdrop-filter: blur(12px);
-    box-shadow: var(--shadow);
-    transition: all var(--transition);
-    cursor: default;
-  }
-  .proj-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow), 0 0 20px var(--glow);
-  }
-  .proj-card:nth-child(2):hover { border-color: var(--accent2); box-shadow: var(--shadow), 0 0 20px var(--glow2); }
-  .proj-name {
-    font-family: 'Orbitron', monospace;
-    font-size: 11px; font-weight: 700;
-    color: var(--accent); margin-bottom: 6px;
-    letter-spacing: 0.06em;
-  }
-  .proj-card:nth-child(2) .proj-name { color: var(--accent2); }
-  .proj-card:nth-child(3) .proj-name { color: var(--accent3); }
-  .proj-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
-
-  /* ── RIGHT PANEL: TERMINAL ── */
-  .terminal-wrap {
-    display: flex; flex-direction: column; gap: 20px;
-  }
-
-  .terminal-panel {
-    display: flex; flex-direction: column;
-  }
-
-  .terminal-body {
-    background: #020608;
-    padding: 14px 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    flex: 1;
-  }
-  [data-theme="light"] .terminal-body { background: #f8fafc; border-top: 1px solid var(--border); }
-
-  .terminal-output {
-    min-height: 220px;
-    max-height: 260px;
-    overflow-y: auto;
-    color: #7ec8d8;
-    line-height: 1.7;
-    margin-bottom: 10px;
-    padding-right: 4px;
-  }
-  [data-theme="light"] .terminal-output { color: #1e4a7a; }
-
-  .terminal-output::-webkit-scrollbar { width: 4px; }
-  .terminal-output::-webkit-scrollbar-track { background: transparent; }
-  .terminal-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .t-line { margin-bottom: 2px; }
-  .t-prompt { color: var(--accent2); }
-  .t-cmd    { color: var(--accent); }
-  .t-resp   { color: var(--muted); }
-  .t-ok     { color: var(--accent2); }
-  .t-err    { color: var(--accent3); }
-  .t-info   { color: #e0a040; }
-  [data-theme="light"] .t-prompt { color: var(--accent2); }
-  [data-theme="light"] .t-cmd    { color: var(--accent); }
-  [data-theme="light"] .t-resp   { color: var(--muted); }
-
-  .terminal-input-row {
-    display: flex; align-items: center; gap: 6px;
-    border-top: 1px solid rgba(0,200,255,0.10);
-    padding-top: 8px;
-  }
-  .t-caret {
-    color: var(--accent2); flex-shrink: 0;
-    font-size: 12px;
-  }
-  .terminal-input {
-    flex: 1;
-    background: none; border: none; outline: none;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--text);
-    caret-color: var(--accent2);
-  }
-
-  /* LOG PANEL */
-  .log-body { padding: 14px 16px; }
-  .log-list { display: flex; flex-direction: column; gap: 5px; max-height: 160px; overflow-y: auto; }
-  .log-list::-webkit-scrollbar { width: 3px; }
-  .log-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .log-entry {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; line-height: 1.5;
-    display: flex; gap: 8px; align-items: flex-start;
-    animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
-
-  .log-ts { color: var(--muted); flex-shrink: 0; }
-  .log-msg { color: var(--text); }
-  .log-msg.ok  { color: var(--accent2); }
-  .log-msg.err { color: var(--accent3); }
-  .log-msg.info{ color: var(--accent); }
-
-  /* HINT ROW */
-  .hint-row {
-    display: flex; gap: 6px; flex-wrap: wrap;
-  }
-  .hint-chip {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; padding: 3px 8px;
-    border-radius: 4px;
-    background: var(--tag-bg);
-    border: 1px solid var(--border);
-    color: var(--muted); cursor: pointer;
-    transition: all var(--transition);
-    letter-spacing: 0.04em;
-  }
-  .hint-chip:hover {
-    color: var(--accent); border-color: var(--accent);
-  }
-
-  /* ── FOOTER BAR ── */
-  .footbar {
-    display: flex; align-items: center; gap: 16px;
-    padding: 10px 16px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    backdrop-filter: blur(12px);
-    flex-wrap: wrap;
-  }
-  .foot-item {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--muted);
-    display: flex; align-items: center; gap: 5px;
-  }
-  .foot-item .fi-label { color: var(--text); }
-  .foot-sep { flex: 1; }
-
-  .uptime-bar {
-    display: flex; align-items: center; gap: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--muted);
-  }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 1100px) {
-    .main-grid {
-      grid-template-columns: 240px 1fr 290px;
-    }
-  }
-
-  @media (max-width: 880px) {
-    .main-grid {
-      grid-template-columns: 1fr;
-    }
-    .projects-row { grid-template-columns: 1fr 1fr; }
-  }
-
-  @media (max-width: 520px) {
-    .projects-row { grid-template-columns: 1fr; }
-    .hero-name { font-size: 26px; }
-    .sys-core { padding: 28px 18px 24px; }
-  }
-
-  /* ── CURSOR BLINK ── */
-  .cursor-blink {
-    display: inline-block;
-    width: 7px; height: 13px;
-    background: var(--accent2);
-    animation: blink 1s step-end infinite;
-    vertical-align: middle;
-    margin-left: 2px;
-    border-radius: 1px;
-  }
-
-  /* Glitch on name */
-  .hero-name:hover {
-    animation: glitch 0.3s ease-in-out;
-  }
-  @keyframes glitch {
-    0%  { text-shadow: none; }
-    20% { text-shadow: -2px 0 var(--accent3), 2px 0 var(--accent); }
-    40% { text-shadow: 2px 0 var(--accent3), -2px 0 var(--accent); }
-    60% { text-shadow: -1px 0 var(--accent3); }
-    80% { text-shadow: 1px 0 var(--accent); }
-    100%{ text-shadow: none; }
-  }
-
-  .glow-sep {
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--accent), transparent);
-    opacity: 0.3;
-    margin: 4px 0;
-  }
-
-  /* Typing animation */
-  @keyframes typing { from { width: 0; } }
+/* RESPONSIVE */
+@media(max-width:1100px){.main-grid{grid-template-columns:240px 1fr 295px;}}
+@media(max-width:880px){
+  .main-grid{grid-template-columns:1fr;}
+  .projects-row{grid-template-columns:1fr 1fr;}
+  .social-links{display:none;}
+}
+@media(max-width:520px){
+  .projects-row{grid-template-columns:1fr;}
+  .hero-name{font-size:26px;}
+  .sys-core{padding:26px 16px 22px;}
+}
 </style>
 </head>
 <body>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particleCanvas"></canvas>
+
 <div class="cc-wrapper">
 
   <!-- TOP BAR -->
@@ -724,47 +414,48 @@
       <div class="topbar-name">LADKE<span>.</span>SYS</div>
     </div>
     <div class="topbar-right">
+      <div class="social-links">
+        <a class="soc-btn" href="mailto:shubhamladke2@gmail.com" title="Email">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          Gmail
+        </a>
+        <a class="soc-btn" href="https://github.com/Shubham-Ladke" target="_blank" title="GitHub">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+          GitHub
+        </a>
+        <a class="soc-btn" href="https://www.linkedin.com/in/shubham-ladke-662976384/" target="_blank" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+          LinkedIn
+        </a>
+      </div>
       <div class="conn-dot"></div>
       <div class="sys-time" id="sysTime">--:--:--</div>
-      <div class="theme-toggle" onclick="toggleTheme()">
-        <button class="t-btn" id="btnDark" onclick="event.stopPropagation();setTheme('dark')">DARK</button>
-        <button class="t-btn active" id="btnLight" onclick="event.stopPropagation();setTheme('light')">LIGHT</button>
+      <div class="theme-toggle">
+        <button class="t-btn active" id="btnDark" onclick="setTheme('dark')">DARK</button>
+        <button class="t-btn" id="btnLight" onclick="setTheme('light')">LIGHT</button>
       </div>
     </div>
   </div>
 
   <!-- STATUS BAR -->
   <div class="statusbar">
-    <div class="status-tag">
-      <div class="dot dot-green"></div>
-      <span>SYSTEM STATUS:</span>
-      <span id="sysStatusTag">OPERATIONAL</span>
-    </div>
+    <div class="status-tag"><div class="dot dot-green"></div><span>STATUS:</span><span id="sysStatusTag">OPERATIONAL</span></div>
     <div class="status-sep"></div>
-    <div class="status-tag">
-      <div class="dot dot-blue"></div>
-      <span>OPERATOR:</span>
-      <span>SHUBHAM LADKE</span>
-    </div>
+    <div class="status-tag"><div class="dot dot-blue"></div><span>OPERATOR:</span><span>SHUBHAM LADKE</span></div>
     <div class="status-sep"></div>
-    <div class="status-tag">
-      <div class="dot dot-red"></div>
-      <span>SECURITY:</span>
-      <span id="secStatusTag">PASSIVE</span>
-    </div>
+    <div class="status-tag"><div class="dot dot-red"></div><span>SECURITY:</span><span id="secStatusTag">PASSIVE</span></div>
     <div class="status-sep"></div>
     <div class="status-tag">
       <div class="dot" style="background:var(--accent);box-shadow:0 0 6px var(--accent);animation:blink 2s infinite 0.3s;width:6px;height:6px;border-radius:50%;"></div>
-      <span>NODE:</span>
-      <span>LOCAL-001</span>
+      <span>NODE:</span><span>LOCAL-001</span>
     </div>
-    <div class="sys-version">COMMAND CENTER v2.1.4 • BUILD 20250219</div>
+    <div class="sys-version">COMMAND CENTER v2.2.0 • BUILD 20250622</div>
   </div>
 
   <!-- MAIN GRID -->
   <div class="main-grid">
 
-    <!-- ── LEFT: MODULES ── -->
+    <!-- ── LEFT ── -->
     <div class="panel">
       <div class="panel-header">
         <div class="panel-icon">⚙️</div>
@@ -776,80 +467,77 @@
           <!-- AI ENGINE -->
           <div class="module-card mod-ai" id="cardAI">
             <div class="module-top">
-              <div class="module-name">
-                <span class="module-emoji">🤖</span> AI Engine
-              </div>
+              <div class="module-name"><span class="module-emoji">🤖</span>AI Engine</div>
               <div class="toggle-wrap">
                 <span class="toggle-label off" id="lblAI">OFF</span>
-                <label class="toggle">
-                  <input type="checkbox" id="togAI" onchange="toggleModule('ai')">
-                  <div class="toggle-track"></div>
-                  <div class="toggle-thumb"></div>
-                </label>
+                <label class="toggle"><input type="checkbox" id="togAI" onchange="toggleModule('ai')"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
               </div>
             </div>
-            <div class="module-desc">Computer vision, NLP pipelines, and automation frameworks — the core intelligence layer.</div>
+            <div class="module-desc">Computer vision pipelines, NLP interfaces, and automation frameworks — the core intelligence layer.</div>
             <div class="module-status" id="statusAI">→ Standby — awaiting activation</div>
           </div>
 
           <!-- SECURITY -->
           <div class="module-card mod-sec" id="cardSec">
             <div class="module-top">
-              <div class="module-name">
-                <span class="module-emoji">🛡️</span> Security / IDS
-              </div>
+              <div class="module-name"><span class="module-emoji">🛡️</span>Security / IDS</div>
               <div class="toggle-wrap">
                 <span class="toggle-label off" id="lblSec">OFF</span>
-                <label class="toggle">
-                  <input type="checkbox" id="togSec" onchange="toggleModule('sec')">
-                  <div class="toggle-track"></div>
-                  <div class="toggle-thumb"></div>
-                </label>
+                <label class="toggle"><input type="checkbox" id="togSec" onchange="toggleModule('sec')"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
               </div>
             </div>
-            <div class="module-desc">Intrusion detection concepts, network defense, and Linux-based security tooling.</div>
+            <div class="module-desc">Intrusion detection concepts, network defense, and Linux-based security tooling via VirtualBox labs.</div>
             <div class="module-status" id="statusSec">→ Inactive — firewall idle</div>
           </div>
 
           <!-- WEB SERVICES -->
           <div class="module-card mod-web" id="cardWeb">
             <div class="module-top">
-              <div class="module-name">
-                <span class="module-emoji">🌐</span> Web Services
-              </div>
+              <div class="module-name"><span class="module-emoji">🌐</span>Web Services</div>
               <div class="toggle-wrap">
                 <span class="toggle-label off" id="lblWeb">OFF</span>
-                <label class="toggle">
-                  <input type="checkbox" id="togWeb" onchange="toggleModule('web')">
-                  <div class="toggle-track"></div>
-                  <div class="toggle-thumb"></div>
-                </label>
+                <label class="toggle"><input type="checkbox" id="togWeb" onchange="toggleModule('web')"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
               </div>
             </div>
-            <div class="module-desc">Frontend interfaces, dashboards, and web-integrated AI services built with HTML/CSS.</div>
+            <div class="module-desc">Frontend dashboards, AI-integrated backends, and responsive web interfaces via HTML/CSS/Flask.</div>
             <div class="module-status" id="statusWeb">→ Stopped — no active deployment</div>
           </div>
 
-          <!-- TOOLS BLOCK -->
-          <div style="margin-top:4px;padding-top:14px;border-top:1px solid var(--border);">
-            <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">Linked Tools</div>
+          <!-- TOOLS -->
+          <div style="padding-top:12px;border-top:1px solid var(--border);">
+            <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Linked Tools</div>
             <div style="display:flex;flex-wrap:wrap;gap:5px;">
               <span class="tech-chip">GitHub</span>
               <span class="tech-chip">Linux</span>
               <span class="tech-chip">VirtualBox</span>
-              <span class="tech-chip">Python</span>
               <span class="tech-chip">OpenCV</span>
+              <span class="tech-chip">Flask</span>
             </div>
+          </div>
+
+          <!-- CONTACT MINI -->
+          <div class="contact-mini">
+            <div class="contact-mini-title">Connect</div>
+            <a class="contact-link" href="mailto:shubhamladke2@gmail.com">
+              <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              <span>shubhamladke2@gmail.com</span>
+            </a>
+            <a class="contact-link" href="https://github.com/Shubham-Ladke" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+              <span>Shubham-Ladke</span>
+            </a>
+            <a class="contact-link" href="https://www.linkedin.com/in/shubham-ladke-662976384/" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+              <span>shubham-ladke</span>
+            </a>
           </div>
 
         </div>
       </div>
     </div>
 
-    <!-- ── CENTER: CORE + PROJECTS ── -->
+    <!-- ── CENTER ── -->
     <div class="center-panel">
-
-      <!-- SYSTEM CORE HERO -->
       <div class="sys-core">
         <div class="hero-eyebrow">SYSTEM CORE ONLINE</div>
 
@@ -857,13 +545,10 @@
           <div class="core-ring ring1"></div>
           <div class="core-ring ring2"></div>
           <div class="core-ring ring3"></div>
-          <div class="core-inner">
-            <span>CORE</span>
-            <span>ONLINE</span>
-          </div>
+          <div class="core-inner"><span>CORE</span><span>ONLINE</span></div>
         </div>
 
-        <div class="hero-name">SHUBHAM<br><span>LADKE</span></div>
+        <div class="hero-name">SHUBHAM <span>LADKE</span></div>
 
         <div class="hero-roles">
           <span class="role-tag">AI Developer</span>
@@ -871,58 +556,75 @@
           <span class="role-tag">Web Developer</span>
         </div>
 
-        <div class="core-status-line" id="coreStatus">
-          &gt;&gt; All modules idle — toggle a module or type a command to begin
-        </div>
+        <div class="core-status-line" id="coreStatus">&gt;&gt; All modules idle — toggle a module or type a command to begin</div>
 
-        <div style="margin-bottom:12px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Tech Stack</div>
-          <div class="tech-row">
-            <span class="tech-chip">C</span>
-            <span class="tech-chip">C++</span>
-            <span class="tech-chip">Java</span>
-            <span class="tech-chip">Python</span>
-            <span class="tech-chip">HTML</span>
-            <span class="tech-chip">CSS</span>
-            <span class="tech-chip">OpenCV</span>
-            <span class="tech-chip">Flask</span>
+        <div class="chip-section">
+          <div class="chip-label">Tech Stack</div>
+          <div class="chip-row">
+            <span class="tech-chip">C</span><span class="tech-chip">C++</span>
+            <span class="tech-chip">Java</span><span class="tech-chip">Python</span>
+            <span class="tech-chip">HTML</span><span class="tech-chip">CSS</span>
+            <span class="tech-chip">JavaScript</span><span class="tech-chip">OpenCV</span>
+            <span class="tech-chip">Flask</span><span class="tech-chip">NumPy</span>
           </div>
         </div>
 
-        <div style="margin-top:4px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Domains</div>
-          <div class="tech-row">
+        <div class="chip-section">
+          <div class="chip-label">Domains</div>
+          <div class="chip-row">
             <span class="tech-chip" style="color:var(--accent);border-color:rgba(0,200,255,0.3)">AI / ML</span>
             <span class="tech-chip" style="color:var(--accent3);border-color:rgba(255,77,143,0.3)">Cybersecurity</span>
             <span class="tech-chip" style="color:var(--accent2);border-color:rgba(0,255,157,0.3)">Computer Vision</span>
             <span class="tech-chip">Automation</span>
             <span class="tech-chip">Web Dev</span>
+            <span class="tech-chip">Linux</span>
           </div>
         </div>
       </div>
 
       <!-- PROJECTS -->
       <div>
-        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">Active Projects</div>
+        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-bottom:9px;">Active Projects — click to view on GitHub</div>
         <div class="projects-row">
-          <div class="proj-card">
+
+          <a class="proj-card" href="https://github.com/Shubham-Ladke/FaceTrack-PRO-Smart-Attendance-System" target="_blank">
             <div class="proj-name">AEGIS</div>
-            <div class="proj-desc">Personal AI assistant — natural language interface for task automation and system control built in Python.</div>
-          </div>
-          <div class="proj-card">
+            <div class="proj-desc">Personal AI assistant — natural language command interface for task automation, built in Python.</div>
+            <div class="proj-tags">
+              <span class="proj-tag">Python</span>
+              <span class="proj-tag">NLP</span>
+              <span class="proj-tag">Automation</span>
+            </div>
+            <div class="proj-link-label">→ github.com/Shubham-Ladke</div>
+          </a>
+
+          <a class="proj-card" href="https://github.com/Shubham-Ladke/FaceTrack-PRO-Smart-Attendance-System" target="_blank">
             <div class="proj-name">FaceTrack Pro</div>
-            <div class="proj-desc">Real-time face detection attendance system using OpenCV. Marks attendance automatically with CV pipeline.</div>
-          </div>
-          <div class="proj-card">
+            <div class="proj-desc">Real-time face detection attendance system. OpenCV pipeline marks attendance automatically from live feed.</div>
+            <div class="proj-tags">
+              <span class="proj-tag">Python</span>
+              <span class="proj-tag">OpenCV</span>
+              <span class="proj-tag">CV</span>
+            </div>
+            <div class="proj-link-label">→ FaceTrack-PRO-Smart-Attendance</div>
+          </a>
+
+          <a class="proj-card" href="https://github.com/Shubham-Ladke/FaceTrack-PRO-Smart-Attendance-System" target="_blank">
             <div class="proj-name">Smart Attendance</div>
-            <div class="proj-desc">Web + AI hybrid attendance management. Frontend dashboard with AI-driven verification backend.</div>
-          </div>
+            <div class="proj-desc">Web + AI hybrid attendance management with a frontend dashboard and AI-driven verification backend.</div>
+            <div class="proj-tags">
+              <span class="proj-tag">HTML/CSS</span>
+              <span class="proj-tag">Flask</span>
+              <span class="proj-tag">AI</span>
+            </div>
+            <div class="proj-link-label">→ github.com/Shubham-Ladke</div>
+          </a>
+
         </div>
       </div>
-
     </div>
 
-    <!-- ── RIGHT: TERMINAL + LOGS ── -->
+    <!-- ── RIGHT: TERMINAL + LOGS + CONTACT ── -->
     <div class="terminal-wrap">
 
       <!-- TERMINAL -->
@@ -938,8 +640,8 @@
         </div>
         <div class="terminal-body">
           <div class="terminal-output" id="termOutput">
-            <div class="t-line"><span class="t-ok">LADKE.SYS v2.1.4 — Command Center Terminal</span></div>
-            <div class="t-line"><span class="t-resp">Type <span class="t-cmd">help</span> to see available commands.</span></div>
+            <div class="t-line"><span class="t-ok">LADKE.SYS v2.2.0 — Command Center Terminal</span></div>
+            <div class="t-line"><span class="t-resp">Type <span class="t-cmd">help</span> for available commands.</span></div>
             <div class="t-line">&nbsp;</div>
           </div>
           <div class="terminal-input-row">
@@ -948,7 +650,7 @@
             <span class="cursor-blink"></span>
           </div>
         </div>
-        <div style="padding:8px 16px 12px;display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--border);">
+        <div style="padding:8px 15px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
           <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;">QUICK RUN:</div>
           <div class="hint-row">
             <span class="hint-chip" onclick="runCmd('help')">help</span>
@@ -956,7 +658,9 @@
             <span class="hint-chip" onclick="runCmd('run aegis')">run aegis</span>
             <span class="hint-chip" onclick="runCmd('scan network')">scan network</span>
             <span class="hint-chip" onclick="runCmd('deploy web')">deploy web</span>
+            <span class="hint-chip" onclick="runCmd('contact')">contact</span>
             <span class="hint-chip" onclick="runCmd('whoami')">whoami</span>
+            <span class="hint-chip" onclick="runCmd('projects')">projects</span>
           </div>
         </div>
       </div>
@@ -966,22 +670,38 @@
         <div class="panel-header">
           <div class="panel-icon">📋</div>
           <div class="panel-title">System Logs</div>
-          <div style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);">LIVE</div>
+          <div style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent2);">● LIVE</div>
         </div>
         <div class="log-body">
           <div class="log-list" id="logList">
-            <div class="log-entry">
-              <span class="log-ts" id="lt1">00:00:00</span>
-              <span class="log-msg ok">System boot — all subsystems nominal</span>
-            </div>
-            <div class="log-entry">
-              <span class="log-ts" id="lt2">00:00:01</span>
-              <span class="log-msg info">Operator authenticated: Shubham Ladke</span>
-            </div>
-            <div class="log-entry">
-              <span class="log-ts" id="lt3">00:00:02</span>
-              <span class="log-msg">Command center interface loaded</span>
-            </div>
+            <div class="log-entry"><span class="log-ts" id="lt1">00:00:00</span><span class="log-msg ok">System boot — all subsystems nominal</span></div>
+            <div class="log-entry"><span class="log-ts" id="lt2">00:00:01</span><span class="log-msg info">Operator authenticated: Shubham Ladke</span></div>
+            <div class="log-entry"><span class="log-ts" id="lt3">00:00:02</span><span class="log-msg">Command center v2.2.0 loaded</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTACT CARD -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-icon">📡</div>
+          <div class="panel-title">Open Channels</div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-title">Reach out — always open to connect</div>
+          <div class="contact-row">
+            <a class="contact-pill" href="mailto:shubhamladke2@gmail.com">
+              <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              Email
+            </a>
+            <a class="contact-pill" href="https://github.com/Shubham-Ladke" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+              GitHub
+            </a>
+            <a class="contact-pill" href="https://www.linkedin.com/in/shubham-ladke-662976384/" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+              LinkedIn
+            </a>
           </div>
         </div>
       </div>
@@ -991,180 +711,217 @@
 
   <!-- FOOTER -->
   <div class="footbar">
-    <div class="foot-item">
-      <span>OS:</span><span class="fi-label">Ubuntu 22.04 LTS</span>
-    </div>
-    <div class="foot-item">
-      <span>LANG:</span><span class="fi-label">Python 3.11 · C++ 20</span>
-    </div>
-    <div class="foot-item">
-      <span>AI:</span><span class="fi-label" id="footAI">Offline</span>
-    </div>
-    <div class="foot-item">
-      <span>SEC:</span><span class="fi-label" id="footSec">Passive</span>
-    </div>
+    <div class="foot-item"><span>OS:</span><span class="fi-label">Ubuntu 22.04 LTS</span></div>
+    <div class="foot-item"><span>LANG:</span><span class="fi-label">Python 3.11 · C++20</span></div>
+    <div class="foot-item"><span>AI:</span><span class="fi-label" id="footAI">Offline</span></div>
+    <div class="foot-item"><span>SEC:</span><span class="fi-label" id="footSec">Passive</span></div>
     <div class="foot-sep"></div>
-    <div class="uptime-bar">
-      <span>UPTIME</span>
-      <span class="fi-label" id="uptimeCount">00:00:00</span>
-    </div>
-    <div class="foot-item">
-      <span style="color:var(--accent2);">● LIVE</span>
-    </div>
+    <div class="foot-item"><span>© 2025</span><span class="fi-label">Shubham Ladke</span></div>
+    <div class="uptime-bar"><span>UPTIME</span><span class="fi-label" id="uptimeCount">00:00:00</span></div>
+    <div class="foot-item"><span style="color:var(--accent2);">● LIVE</span></div>
   </div>
 
 </div>
 
 <script>
-/* ── THEME ── */
+/* ══════════════════════════════
+   PARTICLE / MOUSE BACKGROUND
+══════════════════════════════ */
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+let mouse = { x: -9999, y: -9999 };
+let W, H;
+let particles = [];
+const NUM = 90;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+function getAccentColor() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--particle').trim() || '#00c8ff';
+}
+
+class Particle {
+  constructor() { this.reset(true); }
+  reset(init=false) {
+    this.x = Math.random() * W;
+    this.y = init ? Math.random() * H : (Math.random() < 0.5 ? -10 : H + 10);
+    this.size = Math.random() * 1.8 + 0.4;
+    this.speedX = (Math.random() - 0.5) * 0.4;
+    this.speedY = (Math.random() - 0.5) * 0.4;
+    this.opacity = Math.random() * 0.5 + 0.15;
+    this.pulseSpeed = Math.random() * 0.02 + 0.005;
+    this.pulseOffset = Math.random() * Math.PI * 2;
+    this.color = getAccentColor();
+    // some particles are secondary color
+    if (Math.random() < 0.25) this.color = '#00ff9d';
+    if (Math.random() < 0.10) this.color = '#ff4d8f';
+  }
+  update(t) {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    // mouse repulsion
+    const dx = this.x - mouse.x;
+    const dy = this.y - mouse.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 120) {
+      const force = (120 - dist) / 120;
+      this.x += dx / dist * force * 1.8;
+      this.y += dy / dist * force * 1.8;
+    }
+    // pulse opacity
+    this.opacity = 0.15 + 0.3 * Math.sin(t * this.pulseSpeed + this.pulseOffset);
+    // wrap
+    if (this.x < -20) this.x = W + 20;
+    if (this.x > W + 20) this.x = -20;
+    if (this.y < -20) this.y = H + 20;
+    if (this.y > H + 20) this.y = -20;
+  }
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, this.opacity);
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = this.size * 4;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// connections between nearby particles
+function drawConnections() {
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 110) {
+        const alpha = (1 - d/110) * 0.18;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = particles[i].color;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+    // mouse connections
+    const dx = particles[i].x - mouse.x;
+    const dy = particles[i].y - mouse.y;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < 160) {
+      const alpha = (1 - d/160) * 0.45;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = particles[i].color;
+      ctx.lineWidth = 0.8;
+      ctx.shadowColor = particles[i].color;
+      ctx.shadowBlur = 4;
+      ctx.beginPath();
+      ctx.moveTo(particles[i].x, particles[i].y);
+      ctx.lineTo(mouse.x, mouse.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+}
+
+for (let i = 0; i < NUM; i++) particles.push(new Particle());
+
+let frame = 0;
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  frame++;
+  particles.forEach(p => { p.update(frame); p.draw(); });
+  drawConnections();
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* ══════════════════════════════
+   THEME
+══════════════════════════════ */
 let currentTheme = 'dark';
 function setTheme(t) {
   currentTheme = t;
   document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('btnDark').classList.toggle('active', t === 'dark');
-  document.getElementById('btnLight').classList.toggle('active', t === 'light');
+  document.getElementById('btnDark').classList.toggle('active', t==='dark');
+  document.getElementById('btnLight').classList.toggle('active', t==='light');
+  // refresh particle colors after theme change
+  setTimeout(() => particles.forEach(p => p.color = getAccentColor()), 50);
 }
-function toggleTheme() {
-  setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-}
-// Init dark
 setTheme('dark');
 
-/* ── CLOCK ── */
+/* ══════════════════════════════
+   CLOCK + UPTIME
+══════════════════════════════ */
 function updateClock() {
-  const n = new Date();
-  const pad = x => String(x).padStart(2,'0');
-  document.getElementById('sysTime').textContent =
-    pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds());
+  const n = new Date(), p = x => String(x).padStart(2,'0');
+  document.getElementById('sysTime').textContent = p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(updateClock, 1000); updateClock();
 
-/* ── UPTIME ── */
 let uptimeSec = 0;
 setInterval(() => {
   uptimeSec++;
-  const h = Math.floor(uptimeSec/3600);
-  const m = Math.floor((uptimeSec%3600)/60);
-  const s = uptimeSec%60;
+  const h=Math.floor(uptimeSec/3600), m=Math.floor((uptimeSec%3600)/60), s=uptimeSec%60;
   const p = x => String(x).padStart(2,'0');
   document.getElementById('uptimeCount').textContent = p(h)+':'+p(m)+':'+p(s);
 }, 1000);
 
-/* ── MODULES ── */
-const moduleStates = { ai: false, sec: false, web: false };
+/* ══════════════════════════════
+   MODULES
+══════════════════════════════ */
+const moduleStates = { ai:false, sec:false, web:false };
 
 const moduleConfig = {
   ai: {
-    on:  {
-      lbl: 'ON',
-      status: '→ AI Engine Online — Computer Vision & Automation ready',
-      statusClass: 'active-ai',
-      log: 'AI Engine activated — AEGIS & FaceTrack modules loaded',
-      logType: 'ok',
-      coreStatus: '>> AI Engine Online — Python/OpenCV pipelines active | AEGIS & FaceTrack Pro ready',
-      footKey: 'footAI', footVal: 'Online',
-      secTag: null,
-    },
-    off: {
-      lbl: 'OFF',
-      status: '→ Standby — awaiting activation',
-      statusClass: '',
-      log: 'AI Engine deactivated',
-      logType: '',
-      coreStatus: null,
-      footKey: 'footAI', footVal: 'Offline',
-    }
+    on:  { lbl:'ON', status:'→ AI Engine Online — Computer Vision & Automation active', statusClass:'active-ai', log:'AI Engine activated — AEGIS & FaceTrack modules loaded', logType:'ok', coreStatus:'>> AI Engine Online — Python/OpenCV pipelines active | AEGIS & FaceTrack Pro ready', footKey:'footAI', footVal:'Online' },
+    off: { lbl:'OFF', status:'→ Standby — awaiting activation', statusClass:'', log:'AI Engine deactivated', logType:'', coreStatus:null, footKey:'footAI', footVal:'Offline' }
   },
   sec: {
-    on: {
-      lbl: 'ON',
-      status: '→ IDS monitoring enabled — learning network defense concepts',
-      statusClass: 'active-sec',
-      log: 'Security module enabled — network defense protocols active',
-      logType: 'info',
-      coreStatus: '>> Security / IDS Online — monitoring traffic | Linux-based defense tooling engaged',
-      footKey: 'footSec', footVal: 'Active',
-      sysStatusTag: 'SECURED',
-      secStatusTag: 'ACTIVE',
-    },
-    off: {
-      lbl: 'OFF',
-      status: '→ Inactive — firewall idle',
-      statusClass: '',
-      log: 'Security module disabled — firewall idle',
-      logType: 'err',
-      coreStatus: null,
-      footKey: 'footSec', footVal: 'Passive',
-      sysStatusTag: 'OPERATIONAL',
-      secStatusTag: 'PASSIVE',
-    }
+    on:  { lbl:'ON', status:'→ IDS monitoring enabled — network defense active', statusClass:'active-sec', log:'Security module enabled — network defense protocols active', logType:'info', coreStatus:'>> Security / IDS Online — monitoring traffic | Linux-based defense tooling engaged', footKey:'footSec', footVal:'Active', sysStatusTag:'SECURED', secStatusTag:'ACTIVE' },
+    off: { lbl:'OFF', status:'→ Inactive — firewall idle', statusClass:'', log:'Security module disabled — firewall idle', logType:'err', coreStatus:null, footKey:'footSec', footVal:'Passive', sysStatusTag:'OPERATIONAL', secStatusTag:'PASSIVE' }
   },
   web: {
-    on: {
-      lbl: 'ON',
-      status: '→ Web service deployed — HTML/CSS dashboard active',
-      statusClass: 'active-web',
-      log: 'Web services deployed — dashboard interface live',
-      logType: 'ok',
-      coreStatus: '>> Web Services Deployed — HTML/CSS interfaces live | Flask API endpoints active',
-      footKey: null,
-    },
-    off: {
-      lbl: 'OFF',
-      status: '→ Stopped — no active deployment',
-      statusClass: '',
-      log: 'Web services stopped',
-      logType: 'err',
-      coreStatus: null,
-      footKey: null,
-    }
+    on:  { lbl:'ON', status:'→ Web service deployed — dashboard interface live', statusClass:'active-web', log:'Web services deployed — HTML/CSS dashboard active', logType:'ok', coreStatus:'>> Web Services Deployed — HTML/CSS live | Flask API endpoints active', footKey:null },
+    off: { lbl:'OFF', status:'→ Stopped — no active deployment', statusClass:'', log:'Web services stopped', logType:'err', coreStatus:null, footKey:null }
   }
 };
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 function toggleModule(key) {
   moduleStates[key] = !moduleStates[key];
   const state = moduleStates[key] ? 'on' : 'off';
   const cfg = moduleConfig[key][state];
-
-  // Label
-  const lbl = document.getElementById('lbl' + key.charAt(0).toUpperCase() + key.slice(1));
+  const lbl = document.getElementById('lbl' + cap(key));
   if (lbl) { lbl.textContent = cfg.lbl; lbl.className = 'toggle-label ' + (state==='on'?'on':'off'); }
-
-  // Status in card
-  const statusEl = document.getElementById('status' + key.charAt(0).toUpperCase() + key.slice(1));
-  if (statusEl) {
-    statusEl.textContent = cfg.status;
-    statusEl.className = 'module-status' + (cfg.statusClass ? ' ' + cfg.statusClass : '');
-  }
-
-  // Card active class
-  const cardId = 'card' + key.charAt(0).toUpperCase() + key.slice(1);
-  document.getElementById(cardId).classList.toggle('active', state==='on');
-
-  // Core status line
-  if (cfg.coreStatus) {
-    document.getElementById('coreStatus').textContent = cfg.coreStatus;
-  } else if (state === 'off') {
-    updateCoreStatus();
-  }
-
-  // Footer
-  if (cfg.footKey) {
-    document.getElementById(cfg.footKey).textContent = cfg.footVal;
-  }
-
-  // Status bar tags
+  const statusEl = document.getElementById('status' + cap(key));
+  if (statusEl) { statusEl.textContent = cfg.status; statusEl.className = 'module-status' + (cfg.statusClass ? ' '+cfg.statusClass : ''); }
+  document.getElementById('card' + cap(key)).classList.toggle('active', state==='on');
+  if (cfg.coreStatus) document.getElementById('coreStatus').textContent = cfg.coreStatus;
+  else if (state==='off') updateCoreStatus();
+  if (cfg.footKey) document.getElementById(cfg.footKey).textContent = cfg.footVal;
   if (cfg.sysStatusTag) document.getElementById('sysStatusTag').textContent = cfg.sysStatusTag;
   if (cfg.secStatusTag) document.getElementById('secStatusTag').textContent = cfg.secStatusTag;
-
-  // Log
   addLog(cfg.log, cfg.logType);
 }
 
 function updateCoreStatus() {
-  const active = Object.entries(moduleStates).filter(([,v]) => v).map(([k]) => k);
-  if (active.length === 0) {
+  const active = Object.values(moduleStates).some(v=>v);
+  if (!active) {
     document.getElementById('coreStatus').textContent = '>> All modules idle — toggle a module or type a command to begin';
     document.getElementById('sysStatusTag').textContent = 'OPERATIONAL';
     document.getElementById('secStatusTag').textContent = 'PASSIVE';
@@ -1173,122 +930,130 @@ function updateCoreStatus() {
   }
 }
 
-/* ── LOGS ── */
+/* ══════════════════════════════
+   LOGS
+══════════════════════════════ */
 function getTime() {
-  const n = new Date();
-  const p = x => String(x).padStart(2,'0');
+  const n=new Date(), p=x=>String(x).padStart(2,'0');
   return p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
 }
-
-// Init log timestamps
 ['lt1','lt2','lt3'].forEach((id,i) => {
-  const n = new Date(Date.now() - (2-i)*1000);
-  const p = x => String(x).padStart(2,'0');
+  const n=new Date(Date.now()-(2-i)*1000), p=x=>String(x).padStart(2,'0');
   document.getElementById(id).textContent = p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
 });
-
 function addLog(msg, type='') {
   const list = document.getElementById('logList');
   const entry = document.createElement('div');
   entry.className = 'log-entry';
   entry.innerHTML = `<span class="log-ts">${getTime()}</span><span class="log-msg ${type}">${msg}</span>`;
   list.appendChild(entry);
-  // Trim to 20 entries
-  while (list.children.length > 20) list.removeChild(list.firstChild);
+  while (list.children.length > 22) list.removeChild(list.firstChild);
   list.scrollTop = list.scrollHeight;
 }
 
-/* ── TERMINAL ── */
+/* ══════════════════════════════
+   TERMINAL
+══════════════════════════════ */
 const COMMANDS = {
   help: () => [
-    ['ok', '╔══ Available Commands ══════════════════╗'],
-    ['cmd', '  help        — Show this command list'],
-    ['cmd', '  status      — System overview & health'],
-    ['cmd', '  run aegis   — Launch AEGIS AI assistant info'],
-    ['cmd', '  run facetrack— FaceTrack Pro details'],
-    ['cmd', '  scan network — Network security context'],
-    ['cmd', '  deploy web  — Web development profile'],
-    ['cmd', '  whoami      — Operator profile'],
-    ['cmd', '  stack       — Full tech stack'],
-    ['cmd', '  projects    — List all projects'],
-    ['cmd', '  clear       — Clear terminal'],
-    ['ok',  '╚════════════════════════════════════════╝'],
+    ['ok', '╔══ LADKE.SYS Commands ══════════════════╗'],
+    ['cmd','  help          — Show this list'],
+    ['cmd','  status        — System health overview'],
+    ['cmd','  whoami        — Operator profile'],
+    ['cmd','  run aegis     — AEGIS AI assistant details'],
+    ['cmd','  run facetrack — FaceTrack Pro details'],
+    ['cmd','  scan network  — Cybersecurity context'],
+    ['cmd','  deploy web    — Web development profile'],
+    ['cmd','  projects      — All project registry'],
+    ['cmd','  stack         — Full tech stack'],
+    ['cmd','  contact       — Contact & social links'],
+    ['cmd','  clear         — Clear terminal'],
+    ['ok', '╚════════════════════════════════════════╝'],
   ],
   status: () => {
-    const ai = moduleStates.ai, sec = moduleStates.sec, web = moduleStates.web;
+    const ai=moduleStates.ai, sec=moduleStates.sec, web=moduleStates.web;
     return [
-      ['ok',   '=== SYSTEM STATUS ==='],
-      ['info', `  AI Engine   : ${ai  ? '● ONLINE' : '○ OFFLINE'}`],
-      ['info', `  Security    : ${sec ? '● ACTIVE' : '○ PASSIVE'}`],
-      ['info', `  Web Services: ${web ? '● DEPLOYED' : '○ STOPPED'}`],
-      ['resp', '  Operator    : Shubham Ladke'],
-      ['resp', '  Node        : LOCAL-001'],
-      ['resp', '  Build       : v2.1.4 / 2025-02-19'],
+      ['ok',  '=== SYSTEM STATUS ==='],
+      ['info',`  AI Engine    : ${ai  ?'● ONLINE' :'○ OFFLINE'}`],
+      ['info',`  Security     : ${sec ?'● ACTIVE' :'○ PASSIVE'}`],
+      ['info',`  Web Services : ${web ?'● DEPLOYED':'○ STOPPED'}`],
+      ['resp','  Operator     : Shubham Ladke'],
+      ['resp','  Node         : LOCAL-001'],
+      ['resp','  Build        : v2.2.0 / 2025-06-22'],
     ];
   },
+  whoami: () => [
+    ['ok',  '>> Operator Profile'],
+    ['resp','  Name    : Shubham Ladke'],
+    ['resp','  Roles   : AI Developer · Cybersec Learner · Web Dev'],
+    ['resp','  Domains : AI, CV, Automation, Cybersecurity, Web'],
+    ['resp','  Stack   : Python, C++, Java, C, HTML, CSS'],
+    ['info','  GitHub  : github.com/Shubham-Ladke'],
+    ['info','  Email   : shubhamladke2@gmail.com'],
+    ['info','  LinkedIn: linkedin.com/in/shubham-ladke-662976384'],
+  ],
+  contact: () => [
+    ['ok',  '>> Open Channels'],
+    ['info','  [EMAIL]    shubhamladke2@gmail.com'],
+    ['info','  [GITHUB]   github.com/Shubham-Ladke'],
+    ['info','  [LINKEDIN] linkedin.com/in/shubham-ladke-662976384'],
+    ['resp','  Open to collaborations, projects & opportunities.'],
+  ],
   'run aegis': () => [
-    ['ok',   '>> Launching AEGIS...'],
-    ['resp', '  AEGIS is a personal AI assistant project.'],
-    ['resp', '  Built in Python with a natural language interface,'],
-    ['resp', '  it automates system tasks, parses commands,'],
-    ['resp', '  and serves as a foundation for intelligent'],
-    ['resp', '  human-computer interaction research.'],
-    ['info', '  Stack: Python, NLP, Task Automation'],
-    ['ok',   '  Status: Active development'],
+    ['ok',  '>> Launching AEGIS...'],
+    ['resp','  AEGIS is a personal AI assistant built in Python.'],
+    ['resp','  Natural language interface for task automation,'],
+    ['resp','  system command parsing, and intelligent responses.'],
+    ['resp','  Foundation for human-computer interaction research.'],
+    ['info','  Stack : Python, NLP, Task Automation'],
+    ['ok',  '  Repo  : github.com/Shubham-Ladke'],
   ],
   'run facetrack': () => [
-    ['ok',   '>> Initializing FaceTrack Pro...'],
-    ['resp', '  Real-time face tracking attendance system.'],
-    ['resp', '  Uses OpenCV and deep learning to detect and'],
-    ['resp', '  recognize faces from a live camera feed,'],
-    ['resp', '  marking attendance automatically — no manual input.'],
-    ['info', '  Stack: Python, OpenCV, NumPy'],
-    ['ok',   '  Status: Functional prototype'],
+    ['ok',  '>> Initializing FaceTrack Pro...'],
+    ['resp','  Real-time face detection attendance system.'],
+    ['resp','  OpenCV pipeline detects & recognizes faces from'],
+    ['resp','  live camera feed — marks attendance automatically.'],
+    ['resp','  No manual input required. Logs stored locally.'],
+    ['info','  Stack : Python, OpenCV, NumPy'],
+    ['ok',  '  Repo  : github.com/Shubham-Ladke/FaceTrack-PRO-Smart-Attendance-System'],
   ],
   'scan network': () => [
-    ['ok',   '>> Initiating network scan...'],
-    ['resp', '  Cybersecurity is a core learning domain.'],
-    ['resp', '  Studying IDS/IPS concepts, Linux network tools,'],
-    ['resp', '  and VirtualBox-based lab environments for'],
-    ['resp', '  safe, hands-on practice with defense techniques.'],
-    ['info', '  Tools: Linux, Wireshark, VirtualBox'],
-    ['err',  '  [!] Scan simulated — no real network traffic'],
+    ['ok',  '>> Initiating network scan protocol...'],
+    ['resp','  Cybersecurity — active learning domain.'],
+    ['resp','  Studying IDS/IPS concepts, Linux CLI security tools,'],
+    ['resp','  VirtualBox lab environments for hands-on practice'],
+    ['resp','  in network defense and intrusion detection.'],
+    ['info','  Tools : Linux, Wireshark, VirtualBox, Nmap'],
+    ['err', '  [!] Simulation only — no real traffic captured'],
   ],
   'deploy web': () => [
-    ['ok',   '>> Deploying web services...'],
-    ['resp', '  Web development profile loaded.'],
-    ['resp', '  Builds frontend dashboards with HTML/CSS,'],
-    ['resp', '  integrates AI backends via Flask APIs,'],
-    ['resp', '  and deploys intelligent web interfaces.'],
-    ['info', '  Stack: HTML, CSS, JavaScript, Flask, GitHub Pages'],
-    ['ok',   '  [✓] Smart Attendance dashboard deployed'],
-  ],
-  whoami: () => [
-    ['ok',   '>> Operator Profile'],
-    ['resp', '  Name   : Shubham Ladke'],
-    ['resp', '  Role   : AI Developer · Cybersec Learner · Web Dev'],
-    ['resp', '  Domains: AI, Computer Vision, Automation,'],
-    ['resp', '           Cybersecurity, Web Development'],
-    ['info', '  GitHub : github.com/shubhamladke'],
-  ],
-  stack: () => [
-    ['ok',   '>> Tech Stack'],
-    ['resp', '  Languages : C, C++, Java, Python, HTML, CSS'],
-    ['resp', '  Libraries : OpenCV, NumPy, Flask'],
-    ['resp', '  Tools     : GitHub, Linux, VirtualBox'],
-    ['info', '  Primary   : Python & C++ for systems work'],
+    ['ok',  '>> Deploying web services...'],
+    ['resp','  Web dev profile loaded.'],
+    ['resp','  Builds responsive dashboards with HTML/CSS/JS,'],
+    ['resp','  integrates AI backends via Flask REST APIs,'],
+    ['resp','  deploys to GitHub Pages — zero infrastructure.'],
+    ['info','  Stack : HTML, CSS, JS, Flask, GitHub Pages'],
+    ['ok',  '  [✓] Smart Attendance dashboard — LIVE'],
   ],
   projects: () => [
-    ['ok',   '>> Project Registry'],
-    ['info', '  [1] AEGIS            — Personal AI assistant (Python)'],
-    ['info', '  [2] FaceTrack Pro    — Real-time face tracking attendance'],
-    ['info', '  [3] Smart Attendance — Web + AI attendance management'],
-    ['resp', '  Type "run aegis" or "run facetrack" for details.'],
+    ['ok',  '>> Project Registry'],
+    ['info','  [1] AEGIS             — Personal AI assistant (Python)'],
+    ['info','  [2] FaceTrack Pro     — Real-time face tracking (OpenCV)'],
+    ['info','  [3] Smart Attendance  — Web + AI attendance system'],
+    ['resp','  All repos: github.com/Shubham-Ladke'],
+    ['resp','  Type "run aegis" or "run facetrack" for details.'],
+  ],
+  stack: () => [
+    ['ok',  '>> Tech Stack'],
+    ['resp','  Languages  : C, C++, Java, Python, HTML, CSS, JS'],
+    ['resp','  Libraries  : OpenCV, NumPy, Flask'],
+    ['resp','  Tools      : GitHub, Linux, VirtualBox'],
+    ['resp','  Domains    : AI/ML, Computer Vision, Cybersecurity'],
+    ['info','  Primary    : Python & C++ for systems & AI work'],
   ],
 };
 
-let cmdHistory = [];
-let historyIdx = -1;
+let cmdHistory = [], historyIdx = -1;
 
 function termPrint(lines) {
   const out = document.getElementById('termOutput');
@@ -1307,71 +1072,36 @@ function termPrint(lines) {
 function runCmd(cmd) {
   const out = document.getElementById('termOutput');
   const input = document.getElementById('termInput');
-
-  // Echo prompt
   const promptLine = document.createElement('div');
   promptLine.className = 't-line';
   promptLine.innerHTML = `<span class="t-prompt">ladke@sys:~$</span> <span class="t-cmd">${cmd}</span>`;
   out.appendChild(promptLine);
-
   const key = cmd.trim().toLowerCase();
-  if (key === 'clear') {
-    out.innerHTML = '';
-    input.value = '';
-    return;
-  }
-
+  if (key === 'clear') { out.innerHTML = ''; input.value = ''; return; }
   const handler = COMMANDS[key];
-  if (handler) {
-    termPrint(handler());
-    addLog(`Command executed: ${cmd}`, 'info');
-  } else {
-    termPrint([['err', `Command not found: "${cmd}". Type "help" for options.`]]);
-  }
-
-  // Blank line
+  if (handler) { termPrint(handler()); addLog(`Command executed: ${cmd}`, 'info'); }
+  else { termPrint([['err', `Command not found: "${cmd}" — type "help"`]]); }
   const blank = document.createElement('div');
-  blank.className = 't-line';
-  blank.innerHTML = '&nbsp;';
+  blank.className = 't-line'; blank.innerHTML = '&nbsp;';
   out.appendChild(blank);
   out.scrollTop = out.scrollHeight;
-
   input.value = '';
-  cmdHistory.unshift(cmd);
-  historyIdx = -1;
+  cmdHistory.unshift(cmd); historyIdx = -1;
 }
 
 function handleTermInput(e) {
   const input = document.getElementById('termInput');
-  if (e.key === 'Enter') {
-    const cmd = input.value.trim();
-    if (cmd) runCmd(cmd);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    if (historyIdx < cmdHistory.length - 1) {
-      historyIdx++;
-      input.value = cmdHistory[historyIdx];
-    }
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    if (historyIdx > 0) {
-      historyIdx--;
-      input.value = cmdHistory[historyIdx];
-    } else {
-      historyIdx = -1;
-      input.value = '';
-    }
-  }
+  if (e.key === 'Enter') { const cmd = input.value.trim(); if (cmd) runCmd(cmd); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); if (historyIdx < cmdHistory.length-1) { historyIdx++; input.value = cmdHistory[historyIdx]; } }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); if (historyIdx > 0) { historyIdx--; input.value = cmdHistory[historyIdx]; } else { historyIdx=-1; input.value=''; } }
 }
 
-// Auto-focus terminal on click anywhere in terminal area
-document.querySelector('.terminal-body').addEventListener('click', () => {
-  document.getElementById('termInput').focus();
-});
+document.querySelector('.terminal-body').addEventListener('click', () => document.getElementById('termInput').focus());
 
-// Boot sequence log
-setTimeout(() => addLog('Terminal interface ready', 'ok'), 800);
-setTimeout(() => addLog('Awaiting operator commands...', ''), 1400);
+// Boot logs
+setTimeout(() => addLog('Particle system initialized', 'ok'), 600);
+setTimeout(() => addLog('Terminal interface ready', 'ok'), 1000);
+setTimeout(() => addLog('Awaiting operator commands...', ''), 1500);
 </script>
 </body>
 </html>
